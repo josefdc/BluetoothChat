@@ -54,25 +54,33 @@ class MainActivity : ComponentActivity() {
         val permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { perms ->
-            val canEnableBluetooth = if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                perms[Manifest.permission.BLUETOOTH_CONNECT] == true
-            } else true
+            val hasLocationPermission = perms[Manifest.permission.ACCESS_FINE_LOCATION] == true
+            val canEnableBluetooth = perms[Manifest.permission.BLUETOOTH_CONNECT] == true
 
-            if(canEnableBluetooth && !isBluetoothEnabled) {
+            if (!hasLocationPermission) {
+                Toast.makeText(
+                    applicationContext,
+                    "Location permission is required for Bluetooth discovery.",
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+
+            if (canEnableBluetooth && !isBluetoothEnabled) {
                 enableBluetoothLauncher.launch(
                     Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                 )
             }
         }
 
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            permissionLauncher.launch(
-                arrayOf(
-                    Manifest.permission.BLUETOOTH_SCAN,
-                    Manifest.permission.BLUETOOTH_CONNECT,
-                )
+        // Solicita permisos de ubicación y luego Bluetooth para todas las versiones relevantes
+        permissionLauncher.launch(
+            arrayOf(
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.BLUETOOTH_ADMIN,
+                Manifest.permission.BLUETOOTH_CONNECT
             )
-        }
+        )
 
         setContent {
             BluetoothChatTheme {
@@ -134,4 +142,5 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+
 }
